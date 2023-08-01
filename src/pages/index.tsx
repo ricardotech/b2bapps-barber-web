@@ -1,6 +1,7 @@
 import { barbearia } from "@/utils/data";
 import { MediaQuery } from "@/utils/operators";
 import { Flex, Icon, Image, Text } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 import { MdMenu } from "react-icons/md";
 
@@ -67,7 +68,7 @@ export default function Home() {
   return (
     <>
       {mobile ? (
-        <Flex flexDir="column" bg="#111" h="100vh" w="100%">
+        <Flex flexDir="column" bg="#FFF" h="100vh" w="100%">
           <Flex flexDir="column" bg="#111" h="100vh" w="100%" mx="auto">
             <Image
               bg="#000"
@@ -145,6 +146,19 @@ export default function Home() {
                     Meus agendamentos
                   </Text>
                 </Flex>
+                <Text
+                  borderTop="1px solid #EEE"
+                  mt="20px"
+                  pt="20px"
+                  color="#333"
+                  w="100%"
+                  textAlign="center"
+                  fontWeight={200}
+                  fontSize="1rem"
+                  fontFamily="Poppins"
+                >
+                  Desenvolvido por B2B Apps Ltda
+                </Text>
               </Flex>
             </Flex>
           </Flex>
@@ -175,7 +189,7 @@ export default function Home() {
                 mt="-20px"
                 pt="20px"
                 bg="#FFF"
-                minW={desktop ? "650px" :"500px"}
+                minW={desktop ? "650px" : "500px"}
                 h="50%"
                 borderRadius="20"
               >
