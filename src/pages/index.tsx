@@ -7,12 +7,16 @@ import {
   Image,
   Input,
   SimpleGrid,
+  Stack,
   Text,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-import { MdArrowBack, MdMenu } from "react-icons/md";
+import { MdArrowBack, MdFactCheck, MdMenu } from "react-icons/md";
+import { FaCheck } from "react-icons/fa";
 import { GiMustache } from "react-icons/gi";
+import { ServicesMock } from "@/utils/mocks";
+import { ServiceType } from "@/types";
 
 export default function Home() {
   const { mobile, desktop } = MediaQuery();
@@ -64,19 +68,46 @@ export default function Home() {
     );
   }
 
+  function SelectServices() {
+    const [selectedServices, setSelectedServices] = useState<ServiceType[]>([]);
 
-  function SelectService() {
     function Service({
+      id,
       name,
       price,
       image,
+      duration,
     }: {
+      id: string;
       name: string;
       price: number;
-      image?: string;
+      duration: number;
+      image: string | null;
     }) {
       return (
         <Flex
+          onClick={() => {
+            const service = selectedServices.find(
+              (service) => service.name === name
+            );
+
+            if (service) {
+              setSelectedServices(
+                selectedServices.filter((service) => service.name !== name)
+              );
+            } else {
+              setSelectedServices([
+                ...selectedServices,
+                {
+                  id: id,
+                  name,
+                  price,
+                  image,
+                  duration,
+                },
+              ]);
+            }
+          }}
           cursor="pointer"
           boxShadow="rgba(0, 0, 0, 0.1) 0 0 10px"
           p="10px"
@@ -86,7 +117,76 @@ export default function Home() {
           align="center"
         >
           <Flex align="center">
-            <Avatar name={name} borderRadius={10} mr="10px" />
+            {image ? (
+              <Stack position="relative" display="inline-block">
+                <Image
+                  objectFit="cover"
+                  h="50px"
+                  w="50px"
+                  bg="#000"
+                  src={String(image)}
+                  borderRadius={10}
+                  mr="10px"
+                />
+                {selectedServices.find((service) => service.name === name) && (
+                  <Flex
+                    bg="#000"
+                    h="50px"
+                    w="50px"
+                    zIndex={2}
+                    borderRadius={10}
+                    justify="center"
+                    align="center"
+                    opacity={0.5}
+                    position="absolute"
+                    top="0"
+                    left="0"
+                  >
+                    <Icon as={FaCheck} color="#FFF" fontSize="1.5rem" />
+                  </Flex>
+                )}
+              </Stack>
+            ) : (
+              <Stack position="relative" display="inline-block">
+                <Flex
+                  justify="center"
+                  align="center"
+                  objectFit="cover"
+                  h="50px"
+                  bg="#EEE"
+                  w="50px"
+                  borderRadius={10}
+                  mr="10px"
+                >
+                  <Text fontFamily="Poppins" fontSize="1rem" fontWeight={600}>
+                    {/* renderizar a primeira letra da primeira palavra do name */}
+                    {/* caso exista uma segunda palavra renderize a primeira letra da primeira palavra + a primeira letra da ultima palavra */}
+                    {/* caso tenha 3 ou mais palavras preciso que renderize somente da primeira e da ultima  */}
+                    {name.split(" ").length === 1
+                      ? name.split(" ")[0].charAt(0)
+                      : name.split(" ")[0].charAt(0) +
+                        name.split(" ")[name.split(" ").length - 1].charAt(0)}
+                  </Text>
+                </Flex>
+                {selectedServices.find((service) => service.name === name) && (
+                  <Flex
+                    bg="#000"
+                    h="50px"
+                    w="50px"
+                    zIndex={2}
+                    borderRadius={10}
+                    justify="center"
+                    align="center"
+                    opacity={0.5}
+                    position="absolute"
+                    top="0"
+                    left="0"
+                  >
+                    <Icon as={FaCheck} color="#FFF" fontSize="1.5rem" />
+                  </Flex>
+                )}
+              </Stack>
+            )}
             <Flex flexDir="column">
               <Text color="#000" fontFamily="Poppins" fontWeight="bold">
                 {name}
@@ -119,15 +219,18 @@ export default function Home() {
         my="15px"
         mb="20px"
       >
-        <Service name="Corte de cabelo" price={35} />
-        <Service name="Barba" price={15} />
-        <Service name="Corte + Barba" price={50} />
-        <Service name="Penteado" price={15} />
-        <Service name="Sobrancelha" price={15} />
-        <Service name="Alisamento" price={15} />
-        <Service name="Tratamento de barba" price={15} />
-        <Service name="Micro-pigmentação" price={15} />
-        <Service name="Corte Razor" price={15} />
+        {ServicesMock.map((service, i) => {
+          return (
+            <Service
+              key={i}
+              id={service.id}
+              image={service.image ? service.image : null}
+              name={service.name}
+              price={service.price}
+              duration={service.duration}
+            />
+          );
+        })}
       </SimpleGrid>
     );
   }
@@ -294,7 +397,7 @@ export default function Home() {
                       borderRadius={10}
                     />
                   </Flex>
-                  <SelectService />
+                  <SelectServices />
                   <Flex flexDir="column">
                     <Flex
                       onClick={() => setStep("service")}
@@ -481,7 +584,7 @@ export default function Home() {
                       h="45px"
                       borderRadius={10}
                     />
-                    <SelectService />
+                    <SelectServices />
                   </Flex>
                   <Flex flexDir="column">
                     <Flex
