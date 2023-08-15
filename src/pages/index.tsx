@@ -46,7 +46,7 @@ export default function Home() {
               justify="center"
               align="center"
               borderRadius={8}
-              h="40px"
+              h="50px"
               px="20px"
             >
               <Text
@@ -64,17 +64,6 @@ export default function Home() {
     );
   }
 
-  function Schedule() {
-    return (
-      <Flex pt="0px !important" p="20px" w="100%">
-        <Flex w="100%" bg="#222" borderRadius={8} p="20px">
-          <Text color="#FFF" fontFamily="Poppins" fontSize="1.4rem">
-            Realizar novo agendamento
-          </Text>
-        </Flex>
-      </Flex>
-    );
-  }
 
   function SelectService() {
     function Service({
@@ -91,13 +80,13 @@ export default function Home() {
           cursor="pointer"
           boxShadow="rgba(0, 0, 0, 0.1) 0 0 10px"
           p="10px"
-          borderRadius={20}
+          borderRadius={10}
           justify="space-between"
           w="100%"
           align="center"
         >
           <Flex align="center">
-            <Avatar name={name} borderRadius={20} mr="10px" />
+            <Avatar name={name} borderRadius={10} mr="10px" />
             <Flex flexDir="column">
               <Text color="#000" fontFamily="Poppins" fontWeight="bold">
                 {name}
@@ -143,7 +132,7 @@ export default function Home() {
     );
   }
 
-  const mobileHeight = step === "home" ? "60%" : "60%";
+  const mobileHeight = step === "home" ? "70%" : "70%";
 
   return (
     <>
@@ -153,7 +142,7 @@ export default function Home() {
             <Image
               bg="#000"
               opacity={0.6}
-              h={mobile ? mobileHeight : "80vh"}
+              h={mobileHeight}
               w="100%"
               src="https://images.pexels.com/photos/1319458/pexels-photo-1319458.jpeg?cs=srgb&dl=pexels-nikolaos-dimou-1319458.jpg&fm=jpg"
               objectFit="cover"
@@ -166,55 +155,35 @@ export default function Home() {
               mt="-20px"
               pt="20px"
               bg="#FFF"
-              h="100%"
+              pb="100px"
+              h="fit-content"
               borderTopRadius="20"
             >
               {step === "home" && (
                 <>
                   <Flex flexDir="column">
-                    <Icon
-                      as={GiMustache}
+                    <Text
                       color="#000"
-                      fontSize="1.5rem"
-                      mx="auto"
-                    />
+                      fontFamily="Poppins"
+                      w="100%"
+                      textAlign="center"
+                      fontSize="2rem"
+                      pb="5px"
+                    >
+                      💈
+                    </Text>
                     <Text
                       color="#000"
                       fontFamily="Poppins"
                       w="100%"
                       textAlign="center"
                       fontSize="1.4rem"
-                      borderBottom="1px solid #DDD"
                       pb="20px"
                     >
                       {barbearia.nomeFantasia}
                     </Text>
                   </Flex>
-                  <Flex flexDir="column">
-                    <Text
-                      style={{
-                        marginTop: "20px",
-                        color: "#000",
-                        fontSize: mobile ? "2rem" : "2.6rem",
-                        textAlign: "center",
-                        width: "100%",
-                      }}
-                    >
-                      Olá 👋
-                    </Text>
-                    <Text
-                      style={{
-                        color: "#333",
-                        fontSize: mobile ? "1rem" : "1.3rem",
-                        fontFamily: "Poppins",
-                        fontWeight: 300,
-                        textAlign: "center",
-                        width: "100%",
-                      }}
-                    >
-                      Pronto para agendar um horário?
-                    </Text>
-                  </Flex>
+
                   <Flex flexDir="column">
                     <Flex
                       onClick={() => setStep("service")}
@@ -223,7 +192,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                       px="20px"
                     >
                       <Text
@@ -242,7 +211,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                       px="20px"
                     >
                       <Text
@@ -334,7 +303,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                     >
                       <Text
                         color="#FFF"
@@ -379,50 +348,29 @@ export default function Home() {
                   maxW={desktop ? "650px" : "500px"}
                 >
                   <Flex flexDir="column">
-                    <Icon
-                      as={GiMustache}
+                    <Text
                       color="#000"
-                      fontSize="1.5rem"
-                      mx="auto"
-                    />
+                      fontFamily="Poppins"
+                      w="100%"
+                      textAlign="center"
+                      fontSize="2rem"
+                      pb="5px"
+                    >
+                      💈
+                    </Text>
                     <Text
                       color="#000"
                       fontFamily="Poppins"
                       w="100%"
                       textAlign="center"
                       fontSize="1.4rem"
-                      borderBottom="1px solid #DDD"
                       pb="20px"
                     >
                       {barbearia.nomeFantasia}
                     </Text>
                   </Flex>
-                  <Flex my="40px" flexDir="column">
-                    <Text
-                      style={{
-                        marginTop: "20px",
-                        color: "#000",
-                        fontSize: mobile ? "2rem" : "2.6rem",
-                        textAlign: "center",
-                        width: "100%",
-                      }}
-                    >
-                      Olá 👋
-                    </Text>
-                    <Text
-                      style={{
-                        color: "#333",
-                        fontSize: mobile ? "1rem" : "1.3rem",
-                        fontFamily: "Poppins",
-                        fontWeight: 300,
-                        textAlign: "center",
-                        width: "100%",
-                      }}
-                    >
-                      Pronto para agendar um horário?
-                    </Text>
-                  </Flex>
-                  <Flex flexDir="column">
+
+                  <Flex flexDir="column" mt="10px">
                     <Flex
                       onClick={() => setStep("service")}
                       cursor="pointer"
@@ -430,7 +378,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                       px="20px"
                     >
                       <Text
@@ -449,7 +397,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                       px="20px"
                     >
                       <Text
@@ -543,7 +491,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                       px="20px"
                     >
                       <Text
@@ -562,7 +510,7 @@ export default function Home() {
                       justify="center"
                       align="center"
                       borderRadius={8}
-                      h="40px"
+                      h="50px"
                       px="20px"
                     >
                       <Text
