@@ -1,5 +1,5 @@
 import { barbearia } from "@/utils/data";
-import { MediaQuery } from "@/utils/operators";
+import { MediaQuery, pesquisarService } from "@/utils/operators";
 import {
   Avatar,
   Flex,
@@ -22,6 +22,15 @@ export default function Home() {
   const { mobile, desktop } = MediaQuery();
 
   const [step, setStep] = useState<"home" | "service">("home");
+
+  const [servicesPaginationPage, setServicesPaginationPage] = useState(1);
+
+  const itemsPerPage = desktop ? 32 : 10;
+  const startIndex = (servicesPaginationPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const [servicesResults, setServicesResults] = useState<ServiceType[]>([]);
+  const [searchTerm, setSearchTerm] = useState<String>("");
+  const paginatedServices = ServicesMock.slice(startIndex, endIndex);
 
   function Header() {
     return (
@@ -219,18 +228,39 @@ export default function Home() {
         my="15px"
         mb="20px"
       >
-        {ServicesMock.map((service, i) => {
-          return (
-            <Service
-              key={i}
-              id={service.id}
-              image={service.image ? service.image : null}
-              name={service.name}
-              price={service.price}
-              duration={service.duration}
-            />
-          );
-        })}
+        {searchTerm.length > 0 ? (
+          servicesResults.length > 0 ? (
+            servicesResults.map((service, i) => {
+              return (
+                <Service
+                  key={i}
+                  id={service.id}
+                  image={service.image ? service.image : null}
+                  name={service.name}
+                  price={service.price}
+                  duration={service.duration}
+                />
+              );
+            })
+          ) : (
+            <Text color="#FFF" w="100%" minW="350px">
+              Nenhum resultado "{searchTerm}"
+            </Text>
+          )
+        ) : (
+          paginatedServices.map((service, i) => {
+            return (
+              <Service
+                key={i}
+                id={service.id}
+                image={service.image ? service.image : null}
+                name={service.name}
+                price={service.price}
+                duration={service.duration}
+              />
+            );
+          })
+        )}
       </SimpleGrid>
     );
   }
@@ -391,6 +421,15 @@ export default function Home() {
                       }}
                       border="1px solid #BBB"
                       placeholder="Buscar"
+                      value={String(searchTerm)}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        const res = pesquisarService(
+                          e.target.value,
+                          ServicesMock
+                        );
+                        setServicesResults(res);
+                      }}
                       color="#000"
                       w="100%"
                       h="45px"
