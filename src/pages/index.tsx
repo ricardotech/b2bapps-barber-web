@@ -111,11 +111,12 @@ export default function Home() {
               </Flex>
               <Flex flexDir="column">
                 <Flex
+                  cursor="pointer"
                   bg="#333"
                   justify="center"
                   align="center"
                   borderRadius={8}
-                  h="40px"
+                  h="50px"
                   px="20px"
                 >
                   <Text
@@ -128,12 +129,13 @@ export default function Home() {
                   </Text>
                 </Flex>
                 <Flex
+                  cursor="pointer"
                   mt="10px"
                   bg="transparent"
                   justify="center"
                   align="center"
                   borderRadius={8}
-                  h="40px"
+                  h="50px"
                   px="20px"
                 >
                   <Text
@@ -219,7 +221,8 @@ export default function Home() {
                     justify="center"
                     align="center"
                     borderRadius={8}
-                    h="40px"
+                    h="50px"
+                    cursor="pointer"
                     px="20px"
                   >
                     <Text
@@ -237,7 +240,8 @@ export default function Home() {
                     justify="center"
                     align="center"
                     borderRadius={8}
-                    h="40px"
+                    h="50px"
+                    cursor="pointer"
                     px="20px"
                   >
                     <Text
