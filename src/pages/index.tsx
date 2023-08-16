@@ -623,6 +623,8 @@ export default function Home() {
 
     return (
       <Flex
+        cursor="pointer"
+        onClick={handleSelectDay}
         flexDir="column"
         mr="10px"
         style={{
@@ -642,7 +644,6 @@ export default function Home() {
           {moment(item).format("MMM")}
         </Text>
         <Flex
-          onClick={handleSelectDay}
           style={{
             height: 35,
             width: 35,
@@ -922,7 +923,7 @@ export default function Home() {
                         fontWeight: 300,
                       }}
                     >
-                      Escolha uma opção
+                      Escolha um barbeiro
                     </Text>
                     <Input
                       mt="10px"
@@ -958,7 +959,18 @@ export default function Home() {
                   <SelectBarbers />
                   <Flex flexDir="column">
                     <Flex
-                      onClick={() => setStep("date")}
+                      onClick={() => {
+                        if (selectedBarber) {
+                          setStep("date");
+                        } else {
+                          toast({
+                            status: "error",
+                            description: "Selecione um barbeiro",
+                            position: "top",
+                            duration: 2000,
+                          });
+                        }
+                      }}
                       cursor="pointer"
                       bg="#333"
                       justify="center"
@@ -1212,6 +1224,12 @@ export default function Home() {
                       }}
                       border="1px solid #BBB"
                       placeholder="Buscar"
+                      value={String(serviceSearchTerm)}
+                      onChange={(e) => {
+                        setServiceSearchTerm(e.target.value);
+                        const res = pesquisarName(e.target.value, ServicesMock);
+                        setServicesResults(res);
+                      }}
                       color="#000"
                       w="100%"
                       h="45px"
@@ -1221,7 +1239,18 @@ export default function Home() {
                   </Flex>
                   <Flex flexDir="column">
                     <Flex
-                      onClick={() => setStep("service")}
+                      onClick={() => {
+                        if (selectedServices.length > 0) {
+                          setStep("barber");
+                        } else {
+                          toast({
+                            status: "error",
+                            description: "Selecione um serviço",
+                            position: "top",
+                            duration: 2000,
+                          });
+                        }
+                      }}
                       cursor="pointer"
                       bg="#333"
                       justify="center"
@@ -1236,7 +1265,121 @@ export default function Home() {
                         fontSize="1rem"
                         fontFamily="Poppins"
                       >
-                        Novo agendamento
+                        Próximo
+                      </Text>
+                    </Flex>
+                    <Flex
+                      onClick={() => {
+                        setStep("barber");
+                      }}
+                      cursor="pointer"
+                      mt="10px"
+                      bg="transparent"
+                      justify="center"
+                      align="center"
+                      borderRadius={8}
+                      h="50px"
+                      px="20px"
+                    >
+                      <Text
+                        textDecorationLine="underline"
+                        color="#333"
+                        fontWeight={200}
+                        fontSize="1rem"
+                        fontFamily="Poppins"
+                      >
+                        Meus agendamentos
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              )}
+              {step === "barber" && (
+                <Flex
+                  p="20px"
+                  zIndex={2}
+                  flexDir="column"
+                  justify="space-between"
+                  mt="-20px"
+                  pt="20px"
+                  bg="#FFF"
+                  minW={desktop ? "650px" : "500px"}
+                  borderRadius="20"
+                >
+                  <Flex flexDir="column">
+                    <Icon
+                      cursor="pointer"
+                      onClick={() => setStep("service")}
+                      as={MdArrowBack}
+                      color="#000"
+                      fontSize="2rem"
+                      mb="10px"
+                    />
+                    <Text
+                      style={{
+                        color: "#333",
+                        fontSize: mobile ? "1rem" : "1.3rem",
+                        fontFamily: "Poppins",
+                        fontWeight: 300,
+                      }}
+                    >
+                      Escolha um barbeiro
+                    </Text>
+                    <Input
+                      mt="10px"
+                      _active={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      _focus={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      _hover={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      border="1px solid #BBB"
+                      placeholder="Buscar"
+                      color="#000"
+                      w="100%"
+                      h="45px"
+                      borderRadius={10}
+                    />
+                    <SelectBarbers />
+                  </Flex>
+                  <Flex flexDir="column">
+                    <Flex
+                      onClick={() => {
+                        if (selectedBarber) {
+                          setStep("date");
+                        } else {
+                          toast({
+                            status: "error",
+                            description: "Selecione um barbeiro",
+                            position: "top",
+                            duration: 2000,
+                          });
+                        }
+                      }}
+                      cursor="pointer"
+                      bg="#333"
+                      justify="center"
+                      align="center"
+                      borderRadius={8}
+                      h="50px"
+                      px="20px"
+                    >
+                      <Text
+                        color="#FFF"
+                        fontWeight={200}
+                        fontSize="1rem"
+                        fontFamily="Poppins"
+                      >
+                        Escolher horário
                       </Text>
                     </Flex>
                     <Flex
@@ -1262,20 +1405,22 @@ export default function Home() {
                   </Flex>
                 </Flex>
               )}
-              {step === "barber" && (
+              {step === "date" && (
                 <Flex
+                  p="20px"
                   zIndex={2}
                   flexDir="column"
-                  h="100%"
                   justify="space-between"
+                  mt="-20px"
+                  pt="20px"
                   bg="#FFF"
-                  w="100%"
+                  minW={desktop ? "650px" : "500px"}
                   borderRadius="20"
                 >
                   <Flex flexDir="column">
                     <Icon
                       cursor="pointer"
-                      onClick={() => setStep("service")}
+                      onClick={() => setStep("barber")}
                       as={MdArrowBack}
                       color="#000"
                       fontSize="2rem"
@@ -1289,49 +1434,51 @@ export default function Home() {
                         fontWeight: 300,
                       }}
                     >
-                      Escolha uma opção
+                      Escolha uma data
                     </Text>
-                    <Input
-                      mt="10px"
-                      _active={{
-                        border: "1px solid #BBB",
-                        boxShadow: "none !important",
-                        outline: "none !important",
-                      }}
-                      _focus={{
-                        border: "1px solid #BBB",
-                        boxShadow: "none !important",
-                        outline: "none !important",
-                      }}
-                      _hover={{
-                        border: "1px solid #BBB",
-                        boxShadow: "none !important",
-                        outline: "none !important",
-                      }}
-                      border="1px solid #BBB"
-                      placeholder="Buscar"
-                      value={String(barberSearchTerm)}
-                      onChange={(e) => {
-                        setBarberSearchTerm(e.target.value);
-                        const res = pesquisarName(e.target.value, BarberMock);
-                        setBarbersResults(res);
-                      }}
-                      color="#000"
+                    <Flex
+                      py="20px"
+                      pb="10px"
+                      mb="10px"
+                      align="center"
                       w="100%"
-                      h="45px"
-                      borderRadius={10}
-                    />
+                      overflowX="scroll"
+                    >
+                      {filteredAvailableDays.map((availableDay, i) => {
+                        return (
+                          <ItemDay
+                            key={i}
+                            item={availableDay}
+                            index={i}
+                            availableDays={availableDays}
+                            selectedDay={selectedDay}
+                            setSelectedDay={setSelectedDay}
+                          />
+                        );
+                      })}
+                    </Flex>
                   </Flex>
-                  <SelectBarbers />
                   <Flex flexDir="column">
                     <Flex
-                      onClick={() => setStep("date")}
+                      onClick={() => {
+                        if (selectedBarber) {
+                          setStep("date");
+                        } else {
+                          toast({
+                            status: "error",
+                            description: "Selecione um barbeiro",
+                            position: "top",
+                            duration: 2000,
+                          });
+                        }
+                      }}
                       cursor="pointer"
                       bg="#333"
                       justify="center"
                       align="center"
                       borderRadius={8}
                       h="50px"
+                      px="20px"
                     >
                       <Text
                         color="#FFF"
@@ -1340,6 +1487,26 @@ export default function Home() {
                         fontFamily="Poppins"
                       >
                         Escolher horário
+                      </Text>
+                    </Flex>
+                    <Flex
+                      cursor="pointer"
+                      mt="10px"
+                      bg="transparent"
+                      justify="center"
+                      align="center"
+                      borderRadius={8}
+                      h="50px"
+                      px="20px"
+                    >
+                      <Text
+                        textDecorationLine="underline"
+                        color="#333"
+                        fontWeight={200}
+                        fontSize="1rem"
+                        fontFamily="Poppins"
+                      >
+                        Meus agendamentos
                       </Text>
                     </Flex>
                   </Flex>
