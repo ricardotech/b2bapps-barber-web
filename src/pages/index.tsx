@@ -1,5 +1,11 @@
 import { barbearia } from "@/utils/data";
-import { MediaQuery, pesquisarService } from "@/utils/operators";
+import {
+  MediaQuery,
+  daysOfTheWeek,
+  generateAvailableDates,
+  monthsOfTheYear,
+  pesquisarName,
+} from "@/utils/operators";
 import {
   Avatar,
   Flex,
@@ -9,19 +15,30 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  useToast,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { MdArrowBack, MdFactCheck, MdMenu } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
 import { GiMustache } from "react-icons/gi";
-import { ServicesMock } from "@/utils/mocks";
-import { ServiceType } from "@/types";
+import {
+  AvailableDaysMock,
+  AvailableHoursMock,
+  BarberMock,
+  NotAvailableHoursMock,
+  ServicesMock,
+} from "@/utils/mocks";
+import { BarberType, SchedulingProcessEnum, ServiceType } from "@/types";
+import moment from "moment";
 
 export default function Home() {
+  const toast = useToast();
   const { mobile, desktop } = MediaQuery();
 
-  const [step, setStep] = useState<"home" | "service">("home");
+  const [step, setStep] = useState<"home" | "service" | "barber" | "date">(
+    "home"
+  );
 
   const [servicesPaginationPage, setServicesPaginationPage] = useState(1);
 
@@ -29,8 +46,107 @@ export default function Home() {
   const startIndex = (servicesPaginationPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const [servicesResults, setServicesResults] = useState<ServiceType[]>([]);
-  const [searchTerm, setSearchTerm] = useState<String>("");
+  const [barbersResults, setBarbersResults] = useState<ServiceType[]>([]);
+  const [serviceSearchTerm, setServiceSearchTerm] = useState<String>("");
+  const [barberSearchTerm, setBarberSearchTerm] = useState<String>("");
   const paginatedServices = ServicesMock.slice(startIndex, endIndex);
+  const paginatedBarbers = BarberMock.slice(startIndex, endIndex);
+
+  const [selectedServices, setSelectedServices] = useState<ServiceType[]>([]);
+
+  const [selectedBarber, setSelectedBarber] = useState<
+    BarberType | undefined
+  >();
+
+  const [availableDays, setAvailableDays] = useState<Date[]>([]);
+  const [availableHours, setAvailableHours] = useState<Date[]>([]);
+
+  const currentDate = moment().startOf("day");
+
+  const filteredAvailableDays = availableDays.filter((availableDay) => {
+    const availableDayDate = moment(availableDay).startOf("day");
+
+    return availableDayDate.isSameOrAfter(currentDate);
+  });
+
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectCurrent, setSelectCurrent] = useState<SchedulingProcessEnum>();
+
+  const [selectedDay, setSelectedDay] = useState<Date | null>(selectedDate);
+  const [selectedHour, setSelectedHour] = useState<Date | null>(selectedDate);
+
+  const [advance, setAdvance] = useState<boolean>(false);
+
+  async function getAvailableDays() {
+    setAvailableDays(AvailableDaysMock);
+  }
+
+  async function getAvailableHours() {
+    // get all available hours for the selected day
+    // we have an array of all the occupied hours
+    // we must identify the day of the selected day
+    // we must filter other occupied hours from this array
+    // we must return the available hours (those that are not present in the occupied hours array)
+
+    const occupiedHours = NotAvailableHoursMock.filter(
+      (hour) =>
+        moment(hour).format("DD/MM/YYYY") ===
+        moment(selectedDay).format("DD/MM/YYYY")
+    );
+
+    console.log("oh", occupiedHours);
+
+    const availableHours = AvailableHoursMock.filter(
+      (hour) =>
+        moment(hour).format("DD/MM/YYYY") ===
+        moment(selectedDay).format("DD/MM/YYYY")
+    );
+
+    const filteredAvailableHours = availableHours.filter(
+      (hour) => !occupiedHours.includes(hour)
+    );
+
+    setAvailableHours(filteredAvailableHours);
+  }
+
+  function handleAdvance() {
+    const year = moment(selectedDay).format("YYYY");
+    const month = moment(selectedDay).format("MM");
+    const day = moment(selectedDay).format("DD");
+    const hour = moment(selectedHour).format("HH");
+    const minute = moment(selectedHour).format("mm");
+    const date = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute)
+    );
+    setSelectedDate(date);
+    setSelectCurrent(SchedulingProcessEnum.Confirming);
+  }
+
+  function handleBack() {
+    setSelectedDate(null);
+    setSelectCurrent(SchedulingProcessEnum.SelectingBarber);
+  }
+
+  useEffect(() => {
+    selectedDay && getAvailableHours();
+    !selectedDay && setSelectedHour(null);
+  }, [selectedDay]);
+
+  useEffect(() => {
+    selectedDay && selectedHour ? setAdvance(true) : setAdvance(false);
+  }, [selectedDay, selectedHour]);
+
+  useEffect(() => {
+    getAvailableDays();
+  }, []);
+
+  useEffect(() => {
+    getAvailableHours();
+  }, [selectedDate]);
 
   function Header() {
     return (
@@ -78,8 +194,6 @@ export default function Home() {
   }
 
   function SelectServices() {
-    const [selectedServices, setSelectedServices] = useState<ServiceType[]>([]);
-
     function Service({
       id,
       name,
@@ -228,7 +342,7 @@ export default function Home() {
         my="15px"
         mb="20px"
       >
-        {searchTerm.length > 0 ? (
+        {serviceSearchTerm.length > 0 ? (
           servicesResults.length > 0 ? (
             servicesResults.map((service, i) => {
               return (
@@ -243,8 +357,8 @@ export default function Home() {
               );
             })
           ) : (
-            <Text color="#FFF" w="100%" minW="350px">
-              Nenhum resultado "{searchTerm}"
+            <Text color="#000" w="100%" minW="350px">
+              Nenhum resultado "{serviceSearchTerm}"
             </Text>
           )
         ) : (
@@ -265,6 +379,319 @@ export default function Home() {
     );
   }
 
+  function SelectBarbers() {
+    function Barber({
+      id,
+      name,
+      image,
+      rating,
+    }: {
+      id: string;
+      name: string;
+      rating: number;
+      image: string | null;
+    }) {
+      return (
+        <Flex
+          onClick={() => {
+            if (selectedBarber?.name === name) {
+              setSelectedBarber(undefined);
+            } else {
+              setSelectedBarber({
+                id,
+                name,
+                image,
+                rating,
+              });
+            }
+          }}
+          cursor="pointer"
+          boxShadow="rgba(0, 0, 0, 0.1) 0 0 10px"
+          p="10px"
+          borderRadius={10}
+          justify="space-between"
+          w="100%"
+          align="center"
+        >
+          <Flex align="center">
+            {image ? (
+              <Stack position="relative" display="inline-block">
+                <Image
+                  objectFit="cover"
+                  h="50px"
+                  w="50px"
+                  bg="#000"
+                  src={String(image)}
+                  borderRadius={10}
+                  mr="10px"
+                />
+                {selectedBarber?.name === name && (
+                  <Flex
+                    bg="#000"
+                    h="50px"
+                    w="50px"
+                    zIndex={2}
+                    borderRadius={10}
+                    justify="center"
+                    align="center"
+                    opacity={0.5}
+                    position="absolute"
+                    top="0"
+                    left="0"
+                  >
+                    <Icon as={FaCheck} color="#FFF" fontSize="1.5rem" />
+                  </Flex>
+                )}
+              </Stack>
+            ) : (
+              <Stack position="relative" display="inline-block">
+                <Flex
+                  justify="center"
+                  align="center"
+                  objectFit="cover"
+                  h="50px"
+                  bg="#EEE"
+                  w="50px"
+                  borderRadius={10}
+                  mr="10px"
+                >
+                  <Text fontFamily="Poppins" fontSize="1rem" fontWeight={600}>
+                    {/* renderizar a primeira letra da primeira palavra do name */}
+                    {/* caso exista uma segunda palavra renderize a primeira letra da primeira palavra + a primeira letra da ultima palavra */}
+                    {/* caso tenha 3 ou mais palavras preciso que renderize somente da primeira e da ultima  */}
+                    {name.split(" ").length === 1
+                      ? name.split(" ")[0].charAt(0)
+                      : name.split(" ")[0].charAt(0) +
+                        name.split(" ")[name.split(" ").length - 1].charAt(0)}
+                  </Text>
+                </Flex>
+                {selectedBarber?.name === name && (
+                  <Flex
+                    bg="#000"
+                    h="50px"
+                    w="50px"
+                    zIndex={2}
+                    borderRadius={10}
+                    justify="center"
+                    align="center"
+                    opacity={0.5}
+                    position="absolute"
+                    top="0"
+                    left="0"
+                  >
+                    <Icon as={FaCheck} color="#FFF" fontSize="1.5rem" />
+                  </Flex>
+                )}
+              </Stack>
+            )}
+            <Flex flexDir="column">
+              <Text color="#000" fontFamily="Poppins" fontWeight="bold">
+                {name}
+              </Text>
+              <Text
+                color="#000"
+                fontFamily="Poppins"
+                fontSize="0.8rem"
+                fontWeight="300"
+              >
+                {rating}
+              </Text>
+            </Flex>
+          </Flex>
+        </Flex>
+      );
+    }
+
+    return (
+      <SimpleGrid
+        maxH="42vh"
+        overflowY="scroll"
+        gridGap="10px"
+        columns={[1, 1, 2]}
+        px="5px"
+        py="10px"
+        my="15px"
+        mb="20px"
+      >
+        {barberSearchTerm.length > 0 ? (
+          barbersResults.length > 0 ? (
+            BarberMock.map((barber, i) => {
+              return (
+                <Barber
+                  key={i}
+                  id={barber.id}
+                  image={barber.image ? barber.image : null}
+                  name={barber.name}
+                  rating={5}
+                />
+              );
+            })
+          ) : (
+            <Text color="#000" w="100%" minW="350px">
+              Nenhum resultado "{barberSearchTerm}"
+            </Text>
+          )
+        ) : (
+          paginatedBarbers.map((barber, i) => {
+            return (
+              <Barber
+                key={i}
+                id={barber.id}
+                image={barber.image ? barber.image : null}
+                name={barber.name}
+                rating={barber.rating}
+              />
+            );
+          })
+        )}
+      </SimpleGrid>
+    );
+  }
+
+  function ItemHour({
+    item,
+    selectedHour,
+    setSelectedHour,
+  }: {
+    item: Date;
+    selectedHour: Date | null;
+    setSelectedHour: React.Dispatch<React.SetStateAction<Date | null>>;
+  }) {
+    const selected =
+      moment(selectedHour).format("HH:mm") === moment(item).format("HH:mm")
+        ? true
+        : false;
+    const hour = moment(item).format("HH:mm");
+
+    function handlePress() {
+      selectedHour === item ? setSelectedHour(null) : setSelectedHour(item);
+    }
+
+    return (
+      <Flex
+        onClick={handlePress}
+        style={{
+          width: "calc(100vw - 70) / 4",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 5,
+          backgroundColor: selected ? "blue" : "red",
+          borderRadius: 10,
+        }}
+        px="10px"
+        py="5px"
+      >
+        <Text
+          style={{
+            color: selected ? "blue" : "red",
+            fontWeight: selected ? "bold" : "300",
+          }}
+        >
+          {hour}
+        </Text>
+      </Flex>
+    );
+  }
+
+  function ItemDay({
+    item,
+    index,
+    availableDays,
+    selectedDay,
+    setSelectedDay,
+  }: {
+    item: Date;
+    index: number;
+    availableDays: Date[];
+    selectedDay: Date | null;
+    setSelectedDay: React.Dispatch<React.SetStateAction<Date | null>>;
+  }) {
+    const day = moment(item).format("DD");
+    const month = moment(item).format("MM");
+    const dayOfTheWeek = moment(item).format("d");
+
+    const selected =
+      moment(selectedDay).format("DD/MM/YYYY") ===
+      moment(item).format("DD/MM/YYYY")
+        ? true
+        : false;
+
+    function handleSelectDay() {
+      selectedDay === item ? setSelectedDay(null) : setSelectedDay(item);
+    }
+
+    return (
+      <Flex
+        flexDir="column"
+        mr="10px"
+        style={{
+          alignItems: "center",
+          height: 80,
+          gap: 3,
+          marginRight: index === availableDays.length - 1 ? 20 : undefined,
+        }}
+      >
+        <Text
+          style={{
+            color: selected ? "#000" : "#333",
+            fontWeight: selected ? "bold" : "300",
+            fontSize: 12,
+          }}
+        >
+          {moment(item).format("MMM")}
+        </Text>
+        <Flex
+          onClick={handleSelectDay}
+          style={{
+            height: 35,
+            width: 35,
+            borderRadius: 35,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: selected ? "#333" : "#F0F0F0",
+          }}
+        >
+          <Text
+            style={{
+              color: selected ? "#FFF" : "#333",
+              fontWeight: selected ? "bold" : "300",
+            }}
+          >
+            {day}
+          </Text>
+        </Flex>
+        <Text
+          style={{
+            color: selected ? "#000" : "#333",
+            fontWeight: selected ? "bold" : "300",
+            fontSize: 12,
+          }}
+        >
+          {daysOfTheWeek[Number(dayOfTheWeek)]}
+        </Text>
+      </Flex>
+    );
+  }
+
+  function renderItemHour({
+    item,
+    selectedHour,
+    setSelectedHour,
+  }: {
+    item: Date;
+    selectedHour: Date | null;
+    setSelectedHour: React.Dispatch<React.SetStateAction<Date | null>>;
+  }) {
+    return (
+      <ItemHour
+        item={item}
+        selectedHour={selectedHour}
+        setSelectedHour={setSelectedHour}
+      />
+    );
+  }
+
   const mobileHeight = step === "home" ? "70%" : "70%";
 
   return (
@@ -277,15 +704,14 @@ export default function Home() {
               opacity={0.6}
               h="100vh"
               w="100%"
-              src="https://images.pexels.com/photos/1319458/pexels-photo-1319458.jpeg?cs=srgb&dl=pexels-nikolaos-dimou-1319458.jpg&fm=jpg"
+              src="/barbershop.jpg"
               objectFit="cover"
             />
             <Flex
-              p="20px"
               zIndex={2}
               flexDir="column"
               justify="space-between"
-              mt="-140px"
+              mt={step === "home" ? "-140px" : "-220px"}
               pt="20px"
               bg="#FFF"
               pb={step === "home" ? "100px" : mobile ? "100px" : "20px"}
@@ -293,8 +719,8 @@ export default function Home() {
               borderTopRadius="20"
             >
               {step === "home" && (
-                <>
-                  <Flex flexDir="column">
+                <Flex flexDir="column" px="20px">
+                  <Flex flexDir="column" p="20px">
                     <Text
                       color="#000"
                       fontFamily="Poppins"
@@ -371,10 +797,11 @@ export default function Home() {
                       Desenvolvido por B2B Apps Ltda
                     </Text>
                   </Flex>
-                </>
+                </Flex>
               )}
               {step === "service" && (
                 <Flex
+                  px="20px"
                   zIndex={2}
                   flexDir="column"
                   h="100%"
@@ -421,13 +848,10 @@ export default function Home() {
                       }}
                       border="1px solid #BBB"
                       placeholder="Buscar"
-                      value={String(searchTerm)}
+                      value={String(serviceSearchTerm)}
                       onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        const res = pesquisarService(
-                          e.target.value,
-                          ServicesMock
-                        );
+                        setServiceSearchTerm(e.target.value);
+                        const res = pesquisarName(e.target.value, ServicesMock);
                         setServicesResults(res);
                       }}
                       color="#000"
@@ -439,7 +863,18 @@ export default function Home() {
                   <SelectServices />
                   <Flex flexDir="column">
                     <Flex
-                      onClick={() => setStep("service")}
+                      onClick={() => {
+                        if (selectedServices.length > 0) {
+                          setStep("barber");
+                        } else {
+                          toast({
+                            status: "error",
+                            description: "Selecione um serviço",
+                            position: "top",
+                            duration: 2000,
+                          });
+                        }
+                      }}
                       cursor="pointer"
                       bg="#333"
                       justify="center"
@@ -453,7 +888,166 @@ export default function Home() {
                         fontSize="1rem"
                         fontFamily="Poppins"
                       >
-                        Novo agendamento
+                        Próximo
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              )}
+              {step === "barber" && (
+                <Flex
+                  px="20px"
+                  zIndex={2}
+                  flexDir="column"
+                  h="100%"
+                  justify="space-between"
+                  bg="#FFF"
+                  w="100%"
+                  borderRadius="20"
+                >
+                  <Flex flexDir="column">
+                    <Icon
+                      cursor="pointer"
+                      onClick={() => setStep("service")}
+                      as={MdArrowBack}
+                      color="#000"
+                      fontSize="2rem"
+                      mb="10px"
+                    />
+                    <Text
+                      style={{
+                        color: "#333",
+                        fontSize: mobile ? "1rem" : "1.3rem",
+                        fontFamily: "Poppins",
+                        fontWeight: 300,
+                      }}
+                    >
+                      Escolha uma opção
+                    </Text>
+                    <Input
+                      mt="10px"
+                      _active={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      _focus={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      _hover={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      border="1px solid #BBB"
+                      placeholder="Buscar"
+                      value={String(barberSearchTerm)}
+                      onChange={(e) => {
+                        setBarberSearchTerm(e.target.value);
+                        const res = pesquisarName(e.target.value, BarberMock);
+                        setBarbersResults(res);
+                      }}
+                      color="#000"
+                      w="100%"
+                      h="45px"
+                      borderRadius={10}
+                    />
+                  </Flex>
+                  <SelectBarbers />
+                  <Flex flexDir="column">
+                    <Flex
+                      onClick={() => setStep("date")}
+                      cursor="pointer"
+                      bg="#333"
+                      justify="center"
+                      align="center"
+                      borderRadius={8}
+                      h="50px"
+                    >
+                      <Text
+                        color="#FFF"
+                        fontWeight={200}
+                        fontSize="1rem"
+                        fontFamily="Poppins"
+                      >
+                        Escolher horário
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              )}
+              {step === "date" && (
+                <Flex
+                  zIndex={2}
+                  flexDir="column"
+                  h="100%"
+                  justify="space-between"
+                  bg="#FFF"
+                  w="100%"
+                  borderRadius="20"
+                >
+                  <Flex flexDir="column" px="20px">
+                    <Icon
+                      cursor="pointer"
+                      onClick={() => setStep("barber")}
+                      as={MdArrowBack}
+                      color="#000"
+                      fontSize="2rem"
+                      mb="10px"
+                    />
+                    <Text
+                      style={{
+                        color: "#333",
+                        fontSize: mobile ? "1rem" : "1.3rem",
+                        fontFamily: "Poppins",
+                        fontWeight: 300,
+                      }}
+                    >
+                      Escolha uma data
+                    </Text>
+                  </Flex>
+                  {/*  create a map that iterate availableDays and return a text with the value that is a Data if the Data is equal or after the actual date  using next.js and chakra ui*/}
+                  <Flex
+                    px="20px"
+                    py="20px"
+                    pb="10px"
+                    mb="10px"
+                    align="center"
+                    w="100%"
+                    overflowX="scroll"
+                  >
+                    {filteredAvailableDays.map((availableDay, i) => {
+                      return (
+                        <ItemDay
+                          key={i}
+                          item={availableDay}
+                          index={i}
+                          availableDays={availableDays}
+                          selectedDay={selectedDay}
+                          setSelectedDay={setSelectedDay}
+                        />
+                      );
+                    })}
+                  </Flex>
+                  <Flex flexDir="column" px="20px">
+                    <Flex
+                      onClick={() => setStep("date")}
+                      cursor="pointer"
+                      bg="#333"
+                      justify="center"
+                      align="center"
+                      borderRadius={8}
+                      h="50px"
+                    >
+                      <Text
+                        color="#FFF"
+                        fontWeight={200}
+                        fontSize="1rem"
+                        fontFamily="Poppins"
+                      >
+                        Escolher horário
                       </Text>
                     </Flex>
                   </Flex>
@@ -470,7 +1064,7 @@ export default function Home() {
               opacity={0.6}
               h="100vh"
               w="100%"
-              src="https://images.pexels.com/photos/1319458/pexels-photo-1319458.jpeg?cs=srgb&dl=pexels-nikolaos-dimou-1319458.jpg&fm=jpg"
+              src="/barbershop.jpg"
               objectFit="cover"
             />
             <Flex
@@ -663,6 +1257,89 @@ export default function Home() {
                         fontFamily="Poppins"
                       >
                         Meus agendamentos
+                      </Text>
+                    </Flex>
+                  </Flex>
+                </Flex>
+              )}
+              {step === "barber" && (
+                <Flex
+                  zIndex={2}
+                  flexDir="column"
+                  h="100%"
+                  justify="space-between"
+                  bg="#FFF"
+                  w="100%"
+                  borderRadius="20"
+                >
+                  <Flex flexDir="column">
+                    <Icon
+                      cursor="pointer"
+                      onClick={() => setStep("service")}
+                      as={MdArrowBack}
+                      color="#000"
+                      fontSize="2rem"
+                      mb="10px"
+                    />
+                    <Text
+                      style={{
+                        color: "#333",
+                        fontSize: mobile ? "1rem" : "1.3rem",
+                        fontFamily: "Poppins",
+                        fontWeight: 300,
+                      }}
+                    >
+                      Escolha uma opção
+                    </Text>
+                    <Input
+                      mt="10px"
+                      _active={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      _focus={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      _hover={{
+                        border: "1px solid #BBB",
+                        boxShadow: "none !important",
+                        outline: "none !important",
+                      }}
+                      border="1px solid #BBB"
+                      placeholder="Buscar"
+                      value={String(barberSearchTerm)}
+                      onChange={(e) => {
+                        setBarberSearchTerm(e.target.value);
+                        const res = pesquisarName(e.target.value, BarberMock);
+                        setBarbersResults(res);
+                      }}
+                      color="#000"
+                      w="100%"
+                      h="45px"
+                      borderRadius={10}
+                    />
+                  </Flex>
+                  <SelectBarbers />
+                  <Flex flexDir="column">
+                    <Flex
+                      onClick={() => setStep("date")}
+                      cursor="pointer"
+                      bg="#333"
+                      justify="center"
+                      align="center"
+                      borderRadius={8}
+                      h="50px"
+                    >
+                      <Text
+                        color="#FFF"
+                        fontWeight={200}
+                        fontSize="1rem"
+                        fontFamily="Poppins"
+                      >
+                        Escolher horário
                       </Text>
                     </Flex>
                   </Flex>

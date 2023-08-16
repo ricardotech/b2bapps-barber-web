@@ -59,10 +59,7 @@ export function removeAcentos(texto: string): string {
   return resultado;
 }
 
-export function pesquisarService(
-  searchTerm: string,
-  data: ServiceType[]
-): ServiceType[] {
+export function pesquisarName(searchTerm: string, data: any[]): any[] {
   const lowerCaseSearchTerm = removeAcentos(searchTerm.toLowerCase()).trim();
 
   return data.filter((service) => {
@@ -70,4 +67,60 @@ export function pesquisarService(
 
     return lowerCaseNome.includes(lowerCaseSearchTerm);
   });
+}
+
+export const monthsOfTheYear = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
+export const fullMonthsOfTheYear = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+
+export const daysOfTheWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+export function generateAvailableDates(baseDates: Date[], occupiedDates: Date[]) {
+  const availableDates = [];
+  const openingTime = new Date("2023-08-15T07:00:00.000Z");
+  const closingTime = new Date("2023-08-15T19:00:00.000Z");
+  const interval = 30 * 60 * 1000; // Intervalo de 30 minutos em milissegundos
+
+  for (let currentTime = openingTime; currentTime < closingTime; currentTime = new Date(currentTime.getTime() + interval)) {
+    let isOccupied = false;
+
+    // Verifica se o horário atual está ocupado
+    for (const occupiedDate of occupiedDates) {
+      if (currentTime.getTime() === occupiedDate.getTime()) {
+        isOccupied = true;
+        break;
+      }
+    }
+
+    if (!isOccupied) {
+      availableDates.push(new Date(currentTime));
+    }
+  }
+
+  return availableDates;
 }
